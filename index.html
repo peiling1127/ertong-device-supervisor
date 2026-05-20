@@ -1,0 +1,970 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScreenPact — 屏幕契约</title>
+    <style>
+:root {
+  --bg: #f4f7fb;
+  --card: rgba(255, 255, 255, 0.86);
+  --card-border: rgba(116, 140, 168, 0.18);
+  --text: #18324a;
+  --muted: #5e758d;
+  --primary: #4f7cff;
+  --primary-soft: rgba(79, 124, 255, 0.12);
+  --danger: #e76f51;
+  --success: #2a9d8f;
+  --warning: #f4a261;
+  --shadow: 0 18px 40px rgba(35, 61, 84, 0.08);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  background: radial-gradient(circle at top left, rgba(79, 124, 255, 0.12), transparent 30%), radial-gradient(circle at top right, rgba(42, 157, 143, 0.10), transparent 25%), var(--bg);
+  color: var(--text);
+}
+button, input, select, textarea { font: inherit; }
+.app-shell { width: min(1180px, calc(100% - 32px)); margin: 24px auto 40px; display: grid; gap: 20px; }
+.card { background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--card-border); border-radius: 24px; box-shadow: var(--shadow); }
+.hero { padding: 28px; display: flex; justify-content: space-between; gap: 20px; align-items: center; }
+.eyebrow { margin: 0 0 6px; color: var(--primary); font-size: 0.88rem; font-weight: 700; letter-spacing: 0.06em; }
+h1, h2, h3, h4, p { margin-top: 0; }
+.hero h1 { margin-bottom: 10px; font-size: clamp(1.8rem, 3vw, 2.8rem); }
+.hero-copy, .panel-copy, .empty-state p, .history-item p, .rules-list { color: var(--muted); }
+.hero-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+.primary-btn, .ghost-btn { border: none; border-radius: 16px; padding: 12px 18px; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; }
+.primary-btn:hover, .ghost-btn:hover { transform: translateY(-1px); }
+.primary-btn { background: linear-gradient(135deg, var(--primary), #6d8dff); color: white; box-shadow: 0 10px 24px rgba(79, 124, 255, 0.24); }
+.ghost-btn { background: white; color: var(--text); border: 1px solid rgba(24, 50, 74, 0.14); }
+
+.child-tabs-card { padding: 12px 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+.tab-btn { border: none; border-radius: 14px; padding: 10px 24px; cursor: pointer; font-size: 1rem; font-weight: 600; background: transparent; color: var(--muted); transition: all 0.2s ease; }
+.tab-btn.active { background: var(--primary); color: white; box-shadow: 0 6px 16px rgba(79, 124, 255, 0.3); }
+.tab-btn:hover:not(.active) { background: var(--primary-soft); color: var(--primary); }
+
+.summary-grid, .layout-two { display: grid; gap: 20px; }
+.summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.layout-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.reward-bar { padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+.stat-card, .panel { padding: 22px; }
+.stat-card strong { display: block; margin: 6px 0 4px; font-size: 1.5rem; }
+.stat-label { color: var(--muted); font-size: 0.95rem; }
+.status-card { background: linear-gradient(180deg, rgba(79,124,255,0.16), rgba(255,255,255,0.88)); }
+
+.panel-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 18px; }
+.panel-head h2 { margin-bottom: 8px; }
+
+.event-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.event-form label { display: grid; gap: 8px; color: var(--text); }
+.event-form span { font-size: 0.92rem; color: var(--muted); }
+.event-form input[type="number"], .event-form select, .event-form textarea { width: 100%; border: 1px solid rgba(24, 50, 74, 0.16); border-radius: 14px; padding: 12px 14px; background: rgba(255,255,255,0.95); color: var(--text); }
+.event-form textarea { resize: vertical; }
+.full-width { grid-column: 1 / -1; }
+.exception-label { display: flex; align-items: center; }
+.exception-label span { display: flex; align-items: center; gap: 8px; }
+.exception-label input[type="checkbox"] { width: 18px; height: 18px; }
+
+.suggestion-card { min-height: 100%; border-radius: 20px; padding: 20px; background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(244,247,251,0.98)); border: 1px solid rgba(24, 50, 74, 0.08); }
+.suggestion-card h3 { margin-bottom: 10px; }
+.suggestion-card .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+.chip { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; font-size: 0.86rem; background: var(--primary-soft); color: var(--primary); }
+.chip.positive { background: rgba(42, 157, 143, 0.12); color: var(--success); }
+.chip.minor { background: rgba(244, 162, 97, 0.16); color: var(--warning); }
+.chip.serious { background: rgba(231, 111, 81, 0.14); color: var(--danger); }
+.chip.emotion { background: rgba(156, 136, 255, 0.12); color: #7c5cbf; }
+.chip.exception { background: rgba(100, 100, 100, 0.10); color: #666; }
+.chip.neutral { background: rgba(100, 100, 100, 0.08); color: var(--muted); }
+
+.review-box { margin: 14px 0; padding: 14px; border-radius: 14px; background: rgba(79, 124, 255, 0.06); border: 1px solid rgba(79, 124, 255, 0.12); }
+.review-box pre { margin: 8px 0 0; white-space: pre-wrap; font-family: inherit; font-size: 0.92rem; color: var(--text); }
+
+.history-list { display: grid; gap: 12px; max-height: 500px; overflow-y: auto; }
+.history-item { border-radius: 18px; border: 1px solid rgba(24, 50, 74, 0.08); background: rgba(255, 255, 255, 0.76); padding: 16px; }
+.history-item-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.history-item h3 { font-size: 1.02rem; margin-bottom: 6px; }
+.history-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.badge { display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 999px; background: rgba(79, 124, 255, 0.10); color: var(--primary); font-size: 0.82rem; }
+.badge.positive { background: rgba(42, 157, 143, 0.12); color: var(--success); }
+.badge.negative { background: rgba(231, 111, 81, 0.10); color: var(--danger); }
+
+.history-actions { display: flex; gap: 8px; margin-top: 10px; }
+.action-btn { border: none; border-radius: 10px; padding: 6px 14px; cursor: pointer; font-size: 0.82rem; transition: all 0.2s ease; }
+.edit-btn { background: var(--primary-soft); color: var(--primary); }
+.edit-btn:hover { background: var(--primary); color: white; }
+.delete-btn { background: rgba(231, 111, 81, 0.10); color: var(--danger); }
+.delete-btn:hover { background: var(--danger); color: white; }
+
+.rules-list { padding-left: 20px; display: grid; gap: 8px; color: var(--muted); }
+.rules-list li { line-height: 1.6; }
+.empty-state { display: flex; flex-direction: column; justify-content: center; }
+
+/* Setup wizard */
+.setup-wizard { padding: 32px; }
+.setup-wizard h1 { font-size: clamp(1.6rem, 2.5vw, 2.4rem); margin-bottom: 12px; }
+.setup-wizard h2 { margin-top: 24px; margin-bottom: 12px; color: var(--primary); }
+.setup-wizard h3 { margin-top: 16px; }
+.template-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.template-card { padding: 20px; cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent; }
+.template-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.template-card.selected { border-color: var(--primary); background: var(--primary-soft); }
+.template-card h3 { margin-bottom: 8px; }
+.template-card p { margin-bottom: 0; }
+
+.child-input-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.child-input-row input[type="text"], .child-input-row input[type="number"] { flex: 1; padding: 10px 14px; border: 1px solid rgba(24, 50, 74, 0.16); border-radius: 12px; background: rgba(255,255,255,0.95); }
+.child-input-row select { padding: 10px 14px; border: 1px solid rgba(24, 50, 74, 0.16); border-radius: 12px; background: rgba(255,255,255,0.95); }
+
+/* Child mode */
+.child-mode-content { display: grid; gap: 20px; }
+.child-hero { padding: 28px; text-align: center; background: linear-gradient(135deg, rgba(42, 157, 143, 0.15), rgba(79, 124, 255, 0.10)); }
+.child-hero h2 { font-size: 1.8rem; margin-bottom: 8px; }
+.child-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.positive-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 14px; background: rgba(42, 157, 143, 0.06); border: 1px solid rgba(42, 157, 143, 0.12); margin-bottom: 8px; }
+
+details summary { list-style: none; }
+details summary::-webkit-details-marker { display: none; }
+
+@media (max-width: 1024px) {
+  .summary-grid, .child-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .app-shell { width: min(100% - 20px, 100%); margin: 12px auto 28px; }
+  .hero, .panel-head { flex-direction: column; align-items: flex-start; }
+  .summary-grid, .child-summary, .layout-two, .event-form { grid-template-columns: 1fr; }
+  .hero { padding: 22px; }
+  .stat-card, .panel { padding: 18px; }
+  .child-tabs-card { padding: 10px 14px; }
+  .tab-btn { padding: 8px 18px; font-size: 0.95rem; }
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .setup-wizard { padding: 20px; }
+  .template-grid { grid-template-columns: 1fr; }
+}
+    </style>
+  </head>
+  <body>
+    <main class="app-shell" id="appRoot"></main>
+    <script>
+const STORAGE_KEY = 'family-device-supervisor-v4';
+
+const builtinTemplates = [
+  {
+    id: 'basic',
+    name: '基础版',
+    desc: '1个孩子，简单时长限制，基本奖惩',
+    children: [{id:'child-0',name:'孩子'}],
+    rules: {
+      version: 1,
+      devices: [{value:'phone',label:'手机'},{value:'computer',label:'电脑'},{value:'tablet',label:'平板'},{value:'tv',label:'电视'}],
+      purposes: [{value:'study',label:'学习'},{value:'entertainment',label:'娱乐'},{value:'game',label:'游戏'},{value:'chat',label:'聊天'}],
+      timeRules: ['每日娱乐设备使用上限：60 分钟','睡前 1 小时不使用娱乐设备','使用前需主动申请'],
+      reminderMinutes: 5,
+      overtimeThreshold: 15,
+      penalties: {'child-0':[{level:'轻度',desc:'提醒 + 减少次日 10 分钟'},{level:'重度',desc:'当天停止使用 + 复盘'}]},
+      rewards: {'child-0':{condition:'连续 1 周按时停止',prize:'选择一次周末活动'}},
+      eventTypes: [
+        {value:'on_time_stop',label:'按时停止',category:'positive',pointsDelta:3},
+        {value:'ask_first',label:'主动申请使用',category:'positive',pointsDelta:2},
+        {value:'calm_stop',label:'提醒后平静停止',category:'positive',pointsDelta:2},
+        {value:'self_control',label:'遇到诱惑能自控',category:'positive',pointsDelta:3},
+        {value:'overtime_minor',label:'轻微超时',category:'minor',pointsDelta:-3},
+        {value:'overtime_major',label:'严重超时',category:'serious',pointsDelta:-8},
+        {value:'secret_use',label:'偷偷使用',category:'serious',pointsDelta:-10},
+        {value:'resist_remind',label:'提醒后反抗',category:'emotion',pointsDelta:-2},
+        {value:'cry_tantrum',label:'哭闹/发火',category:'emotion',pointsDelta:-3},
+      ],
+    },
+  },
+  {
+    id: 'siblings',
+    name: '兄弟姐妹版',
+    desc: '2个孩子，分别设置规则和惩罚',
+    children: [{id:'child-0',name:'哥哥'},{id:'child-1',name:'妹妹'}],
+    rules: {
+      version: 1,
+      devices: [{value:'phone',label:'手机'},{value:'computer',label:'电脑'},{value:'minecraft',label:'我的世界'},{value:'tv',label:'电视/视频'},{value:'tablet',label:'平板'}],
+      purposes: [{value:'study',label:'学习'},{value:'entertainment',label:'娱乐'},{value:'game',label:'游戏'},{value:'chat',label:'聊天'}],
+      timeRules: ['手机：仅周五至周日 20:00-21:00','电脑/我的世界：周五/六/日 8:00-21:50；工作日写完作业可玩到21:30','周末电子设备一天最多 2.5 小时（不含我的世界）','睡觉：工作日 21:30 / 周末 21:50 停设备'],
+      reminderMinutes: 3,
+      overtimeThreshold: 15,
+      penalties: {
+        'child-0':[{level:'轻度',desc:'当天不玩手机 + 晒一桶衣服'},{level:'重度',desc:'晒所有衣服 + 不玩手机 + 减1次我的世界 + 不看视频'}],
+        'child-1':[{level:'轻度',desc:'罚洗碗'},{level:'重度',desc:'洗一天的碗'}],
+      },
+      rewards: {'child-0':{condition:'连续 2 周按时关手机',prize:'1 元'},'child-1':{condition:'连续 1 周按时关手机',prize:'1 元'}},
+      eventTypes: [
+        {value:'on_time_stop',label:'按时停止',category:'positive',pointsDelta:3},
+        {value:'ask_first',label:'主动申请使用',category:'positive',pointsDelta:2},
+        {value:'homework_first',label:'先完成作业再玩',category:'positive',pointsDelta:3},
+        {value:'calm_stop',label:'提醒后平静停止',category:'positive',pointsDelta:2},
+        {value:'initiative_activity',label:'主动提议先做其他活动',category:'positive',pointsDelta:3},
+        {value:'self_control',label:'遇到诱惑能自控',category:'positive',pointsDelta:3},
+        {value:'bedtime_stop',label:'按时睡觉',category:'positive',pointsDelta:2},
+        {value:'overtime_minor',label:'轻微超时（1-15分钟）',category:'minor',pointsDelta:-5},
+        {value:'overtime_major',label:'严重超时（超15分钟）',category:'serious',pointsDelta:-10},
+        {value:'bedtime_late',label:'超时未睡',category:'minor',pointsDelta:-5},
+        {value:'homework_excuse',label:'以做作业为由玩手机',category:'minor',pointsDelta:-5},
+        {value:'secret_use',label:'偷偷使用',category:'serious',pointsDelta:-10},
+        {value:'nap_phone',label:'午休玩手机收不住',category:'minor',pointsDelta:-3},
+        {value:'forced_shutdown',label:'超1分钟强制关机',category:'serious',pointsDelta:-8},
+        {value:'resist_remind',label:'提醒后反抗/讨价还价',category:'emotion',pointsDelta:-2},
+        {value:'cry_tantrum',label:'哭闹/发火',category:'emotion',pointsDelta:-3},
+        {value:'refuse_consequence',label:'拒绝接受后果',category:'emotion',pointsDelta:-3},
+        {value:'bargain',label:'讨价还价但最终接受',category:'emotion',pointsDelta:0},
+      ],
+    },
+  },
+  {
+    id: 'relaxed',
+    name: '宽松版',
+    desc: '侧重正向记录，惩罚较轻，适合低龄孩子',
+    children: [{id:'child-0',name:'宝贝'}],
+    rules: {
+      version: 1,
+      devices: [{value:'phone',label:'手机'},{value:'tablet',label:'平板'},{value:'tv',label:'电视'}],
+      purposes: [{value:'study',label:'学习'},{value:'entertainment',label:'娱乐'},{value:'game',label:'游戏'}],
+      timeRules: ['每天看屏幕不超过 40 分钟','吃饭时不看屏幕','睡前 30 分钟不看屏幕'],
+      reminderMinutes: 5,
+      overtimeThreshold: 10,
+      penalties: {'child-0':[{level:'轻度',desc:'温和提醒，减少明天 5 分钟'},{level:'重度',desc:'今天不再使用，明天重新开始'}]},
+      rewards: {'child-0':{condition:'连续 5 天按时停止',prize:'选一个睡前故事/选明天早餐'}},
+      eventTypes: [
+        {value:'on_time_stop',label:'按时停止',category:'positive',pointsDelta:3},
+        {value:'ask_first',label:'主动说要看',category:'positive',pointsDelta:2},
+        {value:'calm_stop',label:'提醒后开心地停下',category:'positive',pointsDelta:3},
+        {value:'self_control',label:'自己决定不看了',category:'positive',pointsDelta:4},
+        {value:'overtime_minor',label:'多看了一会儿',category:'minor',pointsDelta:-2},
+        {value:'overtime_major',label:'很久都不愿意停',category:'serious',pointsDelta:-5},
+        {value:'cry_tantrum',label:'哭闹不想停',category:'emotion',pointsDelta:-2},
+      ],
+    },
+  },
+];
+
+const emotionTypes = [
+  {value:'calm',label:'平静接受'},{value:'bargain',label:'讨价还价'},
+  {value:'upset',label:'不高兴但接受'},{value:'cry',label:'哭闹'},{value:'angry',label:'发火/摔东西'},
+];
+
+const exceptionTypes = [
+  {value:'sick',label:'生病'},{value:'holiday',label:'假期'},
+  {value:'family_event',label:'家庭聚会'},{value:'school_task',label:'学校任务'},
+  {value:'parent_allow',label:'家长临时允许'},
+];
+
+function getDefaultState() {
+  return { setupDone:false, activeChild:'', childMode:false, children:[], rules:null, rulesHistory:[], _editingId:null };
+}
+
+function loadState() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return getDefaultState();
+    var p = JSON.parse(raw);
+    if (!p.setupDone) return getDefaultState();
+    return p;
+  } catch(e) { return getDefaultState(); }
+}
+
+function saveState(state) {
+  var toSave = {};
+  Object.keys(state).forEach(function(k) {
+    if (k === '_els') return;
+    toSave[k] = state[k];
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+}
+function getId() { if(crypto.randomUUID) return crypto.randomUUID(); return 'ev-'+Date.now()+'-'+Math.random().toString(16).slice(2); }
+function escapeHtml(v) { var d=document.createElement('div'); d.textContent=String(v); return d.innerHTML; }
+function formatDate(iso) { return new Intl.DateTimeFormat('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(iso)); }
+function prettyLabel(list,value) { var f=list.find(function(i){return i.value===value;}); return f?f.label:value; }
+
+function getChildState(state, childId) {
+  if (!state[childId]) state[childId] = {points:0, events:[]};
+  return state[childId];
+}
+
+function analyzeEvent(input, state, childId) {
+  var et = state.rules.eventTypes.find(function(t){return t.value===input.type;});
+  if (!et) return {title:input.type,severity:'neutral',pointsDelta:0,recommendation:'已记录。',coaching:'',review:''};
+  var pts = et.pointsDelta || 0;
+  var severity = et.category || 'neutral';
+  var title = et.label;
+  var recommendation = '';
+  var coaching = '';
+  var review = '';
+
+  if (severity === 'positive') {
+    recommendation = '加 ' + pts + ' 分。';
+    coaching = '肯定孩子的表现。';
+  } else if (severity === 'minor') {
+    var penalties = state.rules.penalties[childId];
+    var penaltyDesc = penalties && penalties[0] ? penalties[0].desc : '按约定处理';
+    recommendation = '扣 ' + Math.abs(pts) + ' 分。约定处理：' + penaltyDesc;
+    coaching = '温和但坚定，按约定执行。';
+    review = '1. 确认事实\n2. 让孩子说发生了什么\n3. 问下次怎么做\n4. 执行约定后果';
+  } else if (severity === 'serious') {
+    var penalties2 = state.rules.penalties[childId];
+    var penaltyDesc2 = penalties2 && penalties2[1] ? penalties2[1].desc : '按约定严肃处理';
+    recommendation = '扣 ' + Math.abs(pts) + ' 分。约定处理：' + penaltyDesc2;
+    coaching = '温和但坚定，逐条执行，不打折。';
+    review = '1. 确认事实\n2. 让孩子说发生了什么\n3. 问下次怎么做\n4. 执行后果\n5. 晚上复盘：规则是否需要调整？';
+  } else if (severity === 'emotion') {
+    recommendation = (pts < 0 ? '扣 '+Math.abs(pts)+' 分。' : '不扣分。') + '记录情绪反应，先安抚再复盘。';
+    coaching = '不升级冲突，等情绪平静后再谈。';
+    review = '观察：情绪强度是否在减弱？如果持续激烈，考虑规则是否超出孩子当前能力。';
+  }
+  return {title:title,severity:severity,pointsDelta:pts,recommendation:recommendation,coaching:coaching,review:review};
+}
+
+function buildEvent(input, state, childId, date) {
+  if (!date) date = new Date();
+  var analysis = analyzeEvent(input, state, childId);
+  if (input.isException) {
+    analysis.pointsDelta = 0;
+    analysis.recommendation = '例外情况（' + prettyLabel(exceptionTypes, input.exceptionType) + '），不计入积分。';
+    analysis.severity = 'neutral';
+  }
+  return {
+    id:getId(), type:input.type, device:input.device||'phone', purpose:input.purpose||'entertainment',
+    minutes:Number(input.minutes)||0, emotion:input.emotion||'', isException:input.isException||false,
+    exceptionType:input.exceptionType||'', note:input.note?input.note.trim():'',
+    createdAt:date.toISOString(), pointsDelta:analysis.pointsDelta, severity:analysis.severity,
+    title:analysis.title, recommendation:analysis.recommendation, coaching:analysis.coaching, review:analysis.review||'',
+  };
+}
+
+function getTodayUsage(events) { var today=new Date().toDateString(); return events.reduce(function(s,e){return new Date(e.createdAt).toDateString()===today?s+e.minutes:s;},0); }
+
+function calcStreakDays(events) {
+  if (!events.length) return 0;
+  var dm={};
+  events.forEach(function(e){var k=new Date(e.createdAt).toDateString();if(!dm[k])dm[k]={hasSerious:false};if(e.severity==='serious')dm[k].hasSerious=true;});
+  var streak=0,d=new Date();
+  for(var i=0;i<365;i++){var k=d.toDateString(),info=dm[k];if(!info){if(i===0){d.setDate(d.getDate()-1);continue;}break;}if(info.hasSerious)break;streak++;d.setDate(d.getDate()-1);}
+  return streak;
+}
+
+function getTodayStatus(events) {
+  var today=new Date().toDateString(),te=events.filter(function(e){return new Date(e.createdAt).toDateString()===today;});
+  if(!te.length) return {title:'待记录',hint:'今天还没有记录。',tone:'neutral'};
+  if(te.some(function(e){return e.severity==='serious';})) return {title:'需复盘',hint:'今天有严重违规。',tone:'danger'};
+  if(te.some(function(e){return e.severity==='minor'||e.severity==='emotion';})) return {title:'有提醒',hint:'今天有需注意的记录。',tone:'warning'};
+  return {title:'表现良好',hint:'今天整体守约！',tone:'success'};
+}
+
+function severityLabel(s){switch(s){case 'positive':return '积极行为';case 'neutral':return '中性/例外';case 'minor':return '轻微违规';case 'serious':return '严重违规';case 'emotion':return '情绪记录';default:return '记录';}}
+// ===== RENDER FUNCTIONS =====
+
+function renderSetupWizard(state) {
+  var app = document.getElementById('appRoot');
+  var html = '<div class="setup-wizard card">';
+  html += '<h1>欢迎使用家庭电子设备约定监督官</h1>';
+  html += '<p class="hero-copy">这是一个帮助家庭协商、记录和执行电子设备使用规则的工具。<br>不是监控，是成长助手。</p>';
+  html += '<h2>选择一个模板开始</h2>';
+  html += '<div class="template-grid">';
+  builtinTemplates.forEach(function(t){
+    html += '<div class="template-card card" data-template="'+t.id+'">';
+    html += '<h3>'+escapeHtml(t.name)+'</h3>';
+    html += '<p>'+escapeHtml(t.desc)+'</p>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '<div class="setup-custom" id="setupCustom" style="display:none">';
+  html += '<h2>设置孩子信息</h2>';
+  html += '<p class="panel-copy">可以添加 1-4 个孩子，名字随时可以修改。</p>';
+  html += '<div id="childInputs"></div>';
+  html += '<button class="ghost-btn" id="addChildBtn" type="button">+ 添加一个孩子</button>';
+  html += '<br><br><button class="primary-btn" id="confirmSetupBtn" type="button">确认，开始使用</button>';
+  html += '</div>';
+  html += '</div>';
+  app.innerHTML = html;
+
+  var selectedTemplate = null;
+  var childNames = [];
+
+  app.querySelectorAll('.template-card').forEach(function(card){
+    card.addEventListener('click', function(){
+      app.querySelectorAll('.template-card').forEach(function(c){c.classList.remove('selected');});
+      card.classList.add('selected');
+      selectedTemplate = builtinTemplates.find(function(t){return t.id===card.dataset.template;});
+      childNames = selectedTemplate.children.map(function(c){return c.name;});
+      document.getElementById('setupCustom').style.display = 'block';
+      renderChildInputs();
+    });
+  });
+
+  function renderChildInputs() {
+    var container = document.getElementById('childInputs');
+    container.innerHTML = childNames.map(function(name, i){
+      return '<div class="child-input-row"><input type="text" class="child-name-input" value="'+escapeHtml(name)+'" data-index="'+i+'" placeholder="孩子名字" />'+(childNames.length>1?'<button class="action-btn delete-btn remove-child-btn" data-index="'+i+'">删除</button>':'')+'</div>';
+    }).join('');
+    container.querySelectorAll('.child-name-input').forEach(function(input){
+      input.addEventListener('input', function(){childNames[Number(input.dataset.index)]=input.value;});
+    });
+    container.querySelectorAll('.remove-child-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){childNames.splice(Number(btn.dataset.index),1);renderChildInputs();});
+    });
+  }
+
+  document.getElementById('addChildBtn').addEventListener('click', function(){
+    if(childNames.length>=4) return;
+    childNames.push('孩子'+(childNames.length+1));
+    renderChildInputs();
+  });
+
+  document.getElementById('confirmSetupBtn').addEventListener('click', function(){
+    childNames = childNames.filter(function(n){return n.trim();});
+    if(!childNames.length){alert('请至少填写一个孩子的名字');return;}
+    if(!selectedTemplate){alert('请先选择一个模板');return;}
+    var children = childNames.map(function(name,i){return {id:'child-'+i,name:name};});
+    var rules = JSON.parse(JSON.stringify(selectedTemplate.rules));
+    var newPenalties = {};
+    var newRewards = {};
+    children.forEach(function(c,i){
+      var srcId = selectedTemplate.children[i] ? selectedTemplate.children[i].id : selectedTemplate.children[0].id;
+      newPenalties[c.id] = rules.penalties[srcId] ? JSON.parse(JSON.stringify(rules.penalties[srcId])) : [{level:'轻度',desc:'按约定处理'},{level:'重度',desc:'按约定严肃处理'}];
+      newRewards[c.id] = rules.rewards[srcId] ? JSON.parse(JSON.stringify(rules.rewards[srcId])) : {condition:'连续1周按时停止',prize:'奖励待定'};
+    });
+    rules.penalties = newPenalties;
+    rules.rewards = newRewards;
+    state.setupDone = true;
+    state.children = children;
+    state.activeChild = children[0].id;
+    state.rules = rules;
+    state.rulesHistory = [{version:1,date:new Date().toISOString(),reason:'初始设置（模板：'+selectedTemplate.name+'）',snapshot:JSON.parse(JSON.stringify(rules))}];
+    children.forEach(function(c){state[c.id]={points:0,events:[]};});
+    saveState(state);
+    renderMainApp(state);
+  });
+}
+
+function renderMainApp(state) {
+  var app = document.getElementById('appRoot');
+  app.innerHTML = buildMainHTML(state);
+  initMainEvents(state);
+  renderApp(state);
+}
+
+function buildMainHTML(state) {
+  var html = '';
+  html += '<header class="hero card"><div><p class="eyebrow">家庭契约 · 成长记录</p>';
+  html += '<h1>家庭电子设备约定监督官</h1>';
+  html += '<p class="hero-copy">记录事实，自动给出中立的奖惩与沟通提示。</p></div>';
+  html += '<div class="hero-actions"><button class="ghost-btn" id="childModeBtn">切换到孩子模式</button>';
+  html += '<button class="ghost-btn" id="settingsBtn">设置</button>';
+  html += '<button class="ghost-btn" id="resetDataBtn">重置所有数据</button></div></header>';
+  html += '<nav class="card child-tabs-card" id="childTabs"></nav>';
+  html += '<div id="parentView">';
+  html += '<section class="summary-grid"><article class="card stat-card"><span class="stat-label">今日使用</span><strong id="todayUsage">0</strong><small>累计分钟</small></article>';
+  html += '<article class="card stat-card"><span class="stat-label">当前积分</span><strong id="currentPoints">0</strong><small>正向加分/违规扣分</small></article>';
+  html += '<article class="card stat-card"><span class="stat-label">连续守约</span><strong id="streakDays">0</strong><small>无严重违规天数</small></article>';
+  html += '<article class="card stat-card status-card"><span class="stat-label">今日状态</span><strong id="todayStatus">待记录</strong><small id="statusHint">--</small></article></section>';
+  html += '<div class="reward-bar card"><span class="stat-label">奖励进度</span><strong id="weeklyReward">--</strong></div>';
+  html += '<section class="layout-two"><article class="card panel"><div class="panel-head"><div><p class="eyebrow">行为记录</p><h2>家长只负责观察</h2></div></div>';
+  html += '<form id="eventForm" class="event-form">';
+  html += '<label><span>事件类型</span><select id="eventType"></select></label>';
+  html += '<label><span>设备</span><select id="device"></select></label>';
+  html += '<label><span>用途</span><select id="purpose"></select></label>';
+  html += '<label><span>分钟数</span><input id="minutes" type="number" min="0" value="0" /></label>';
+  html += '<label><span>停止时情绪</span><select id="emotion"><option value="">未观察</option>';
+  emotionTypes.forEach(function(e){html+='<option value="'+e.value+'">'+e.label+'</option>';});
+  html += '</select></label>';
+  html += '<label class="exception-label"><span><input type="checkbox" id="isException" /> 例外情况（不计积分）</span></label>';
+  html += '<label class="full-width" id="exceptionGroup" style="display:none"><span>例外原因</span><select id="exceptionType">';
+  exceptionTypes.forEach(function(e){html+='<option value="'+e.value+'">'+e.label+'</option>';});
+  html += '</select></label>';
+  html += '<label class="full-width"><span>备注</span><textarea id="note" rows="2" placeholder="可选"></textarea></label>';
+  html += '<button class="primary-btn full-width" type="submit" id="submitBtn">记录事件并生成建议</button>';
+  html += '</form></article>';
+  html += '<article class="card panel suggestion-panel"><div class="panel-head"><div><p class="eyebrow">自动判定</p><h2>奖惩/复盘提示</h2></div></div>';
+  html += '<div id="suggestionCard" class="suggestion-card empty-state"><h3>还没有记录</h3><p>观察后点击记录。</p></div></article></section>';
+  html += '<section class="layout-two bottom-grid"><article class="card panel"><div class="panel-head"><div><p class="eyebrow">成长记录</p><h2>最近事件</h2></div></div>';
+  html += '<div id="historyList" class="history-list"></div></article>';
+  html += '<article class="card panel"><div class="panel-head"><div><p class="eyebrow">家庭公约</p><h2>当前规则 <small>(v'+state.rules.version+')</small></h2></div>';
+  html += '<button class="ghost-btn" id="editRulesBtn">编辑规则</button></div>';
+  html += '<div id="rulesDisplay"></div>';
+  html += '<div id="rulesHistory" style="margin-top:18px"></div>';
+  html += '</article></section></div>';
+  html += '<div id="childView" style="display:none"><section class="child-mode-content">';
+  html += '<article class="card child-hero"><h2>我的成长进度</h2><p class="hero-copy">每一次守约都是在变强！</p></article>';
+  html += '<section class="summary-grid child-summary"><article class="card stat-card"><span class="stat-label">我的积分</span><strong id="childPoints">0</strong></article>';
+  html += '<article class="card stat-card"><span class="stat-label">连续守约</span><strong id="childStreak">0</strong></article>';
+  html += '<article class="card stat-card status-card"><span class="stat-label">今日</span><strong id="childStatus">加油</strong></article>';
+  html += '<article class="card stat-card"><span class="stat-label">奖励</span><strong id="childReward">--</strong></article></section>';
+  html += '<article class="card panel"><div class="panel-head"><div><p class="eyebrow">我做到的好事</p><h2>正向记录</h2></div></div>';
+  html += '<div id="childPositiveList" class="history-list"></div></article></section></div>';
+  return html;
+}
+// ===== MAIN APP EVENTS AND INTERACTIONS =====
+
+function initMainEvents(state) {
+  var els = {
+    childTabs:document.getElementById('childTabs'),
+    childModeBtn:document.getElementById('childModeBtn'),
+    settingsBtn:document.getElementById('settingsBtn'),
+    parentView:document.getElementById('parentView'),
+    childView:document.getElementById('childView'),
+    todayUsage:document.getElementById('todayUsage'),
+    currentPoints:document.getElementById('currentPoints'),
+    streakDays:document.getElementById('streakDays'),
+    todayStatus:document.getElementById('todayStatus'),
+    statusHint:document.getElementById('statusHint'),
+    weeklyReward:document.getElementById('weeklyReward'),
+    eventForm:document.getElementById('eventForm'),
+    eventType:document.getElementById('eventType'),
+    device:document.getElementById('device'),
+    purpose:document.getElementById('purpose'),
+    minutes:document.getElementById('minutes'),
+    emotion:document.getElementById('emotion'),
+    isException:document.getElementById('isException'),
+    exceptionType:document.getElementById('exceptionType'),
+    exceptionGroup:document.getElementById('exceptionGroup'),
+    note:document.getElementById('note'),
+    submitBtn:document.getElementById('submitBtn'),
+    suggestionCard:document.getElementById('suggestionCard'),
+    historyList:document.getElementById('historyList'),
+    resetDataBtn:document.getElementById('resetDataBtn'),
+    editRulesBtn:document.getElementById('editRulesBtn'),
+    rulesDisplay:document.getElementById('rulesDisplay'),
+    rulesHistory:document.getElementById('rulesHistory'),
+    childPoints:document.getElementById('childPoints'),
+    childStreak:document.getElementById('childStreak'),
+    childStatus:document.getElementById('childStatus'),
+    childReward:document.getElementById('childReward'),
+    childPositiveList:document.getElementById('childPositiveList'),
+  };
+  state._els = els;
+
+  els.eventType.innerHTML = state.rules.eventTypes.map(function(t){return '<option value="'+t.value+'">'+escapeHtml(t.label)+'</option>';}).join('');
+  els.device.innerHTML = state.rules.devices.map(function(d){return '<option value="'+d.value+'">'+escapeHtml(d.label)+'</option>';}).join('');
+  els.purpose.innerHTML = state.rules.purposes.map(function(p){return '<option value="'+p.value+'">'+escapeHtml(p.label)+'</option>';}).join('');
+
+  els.isException.addEventListener('change', function(){els.exceptionGroup.style.display=els.isException.checked?'block':'none';});
+
+  els.childModeBtn.addEventListener('click', function(){
+    state.childMode=!state.childMode; saveState(state); renderApp(state);
+  });
+
+  els.settingsBtn.addEventListener('click', function(){ renderSettingsPanel(state); });
+  els.editRulesBtn.addEventListener('click', function(){ renderRulesEditor(state); });
+
+  els.eventForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    var data={type:els.eventType.value,device:els.device.value,purpose:els.purpose.value,minutes:Number(els.minutes.value),emotion:els.emotion.value,isException:els.isException.checked,exceptionType:els.exceptionType.value,note:els.note.value};
+    var childId=state.activeChild;
+    var cs=getChildState(state,childId);
+    if(state._editingId){
+      var idx=cs.events.findIndex(function(ev){return ev.id===state._editingId;});
+      if(idx!==-1){
+        cs.points=cs.points-cs.events[idx].pointsDelta;
+        var updated=buildEvent(data,state,childId,new Date(cs.events[idx].createdAt));
+        updated.id=state._editingId;
+        cs.events[idx]=updated;
+        cs.points=cs.points+updated.pointsDelta;
+        state._editingId=null;
+        els.submitBtn.textContent='记录事件并生成建议';
+        saveState(state);renderApp(state,updated);
+      }
+    } else {
+      var newEvent=buildEvent(data,state,childId);
+      cs.events=[newEvent].concat(cs.events);
+      cs.points=cs.points+newEvent.pointsDelta;
+      saveState(state);renderApp(state,newEvent);
+    }
+    els.eventForm.reset();els.minutes.value='0';els.exceptionGroup.style.display='none';
+  });
+
+  els.resetDataBtn.addEventListener('click', function(){
+    if(!confirm('确定重置所有数据？这会清除所有记录和规则设置。')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  });
+}
+
+function renderApp(state, latestEvent) {
+  var els = state._els;
+  renderChildTabs(state);
+  if(state.childMode){
+    els.parentView.style.display='none';els.childView.style.display='block';
+    els.childModeBtn.textContent='切换到家长模式';
+    renderChildMode(state);
+  } else {
+    els.parentView.style.display='block';els.childView.style.display='none';
+    els.childModeBtn.textContent='切换到孩子模式';
+    renderSummary(state);
+    renderHistory(state);
+    renderRulesDisplay(state);
+    renderRulesHistoryList(state);
+    if(latestEvent) renderSuggestion(state,latestEvent);
+    else { var cs=getChildState(state,state.activeChild); var last=cs.events[0]; if(last)renderSuggestion(state,last); else{els.suggestionCard.classList.add('empty-state');els.suggestionCard.innerHTML='<h3>还没有记录</h3><p>观察后点击记录。</p>';}}
+  }
+}
+
+function renderChildTabs(state) {
+  var els=state._els;
+  els.childTabs.innerHTML = state.children.map(function(c){
+    return '<button class="tab-btn '+(state.activeChild===c.id?'active':'')+'" data-child="'+c.id+'">'+escapeHtml(c.name)+'</button>';
+  }).join('');
+  els.childTabs.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){state.activeChild=btn.dataset.child;saveState(state);renderApp(state);});
+  });
+}
+
+function renderSummary(state) {
+  var els=state._els, cs=getChildState(state,state.activeChild);
+  var usage=getTodayUsage(cs.events), streak=calcStreakDays(cs.events), status=getTodayStatus(cs.events);
+  els.todayUsage.textContent=usage+' 分钟';
+  els.currentPoints.textContent=cs.points+' 分';
+  els.streakDays.textContent=streak+' 天';
+  els.todayStatus.textContent=status.title;
+  els.statusHint.textContent=status.hint;
+  els.todayStatus.style.color=status.tone==='danger'?'var(--danger)':status.tone==='success'?'var(--success)':status.tone==='warning'?'var(--warning)':'var(--text)';
+  var reward=state.rules.rewards[state.activeChild];
+  if(reward) els.weeklyReward.textContent=reward.condition+' → '+reward.prize;
+  else els.weeklyReward.textContent='未设置奖励';
+}
+
+function renderSuggestion(state, event) {
+  var els=state._els;
+  els.suggestionCard.classList.remove('empty-state');
+  var html='<h3>'+escapeHtml(event.title)+'</h3>';
+  html+='<div class="chips"><span class="chip '+event.severity+'">'+severityLabel(event.severity)+'</span>';
+  html+='<span class="chip">'+escapeHtml(prettyLabel(state.rules.devices,event.device))+'</span>';
+  html+='<span class="chip">'+escapeHtml(prettyLabel(state.rules.purposes,event.purpose))+'</span>';
+  if(event.emotion) html+='<span class="chip emotion">情绪：'+escapeHtml(prettyLabel(emotionTypes,event.emotion))+'</span>';
+  if(event.isException) html+='<span class="chip exception">例外</span>';
+  html+='</div>';
+  html+='<p><strong>积分：</strong>'+(event.pointsDelta>0?'+':'')+event.pointsDelta+'分</p>';
+  html+='<p><strong>建议：</strong>'+escapeHtml(event.recommendation)+'</p>';
+  html+='<p><strong>沟通：</strong>'+escapeHtml(event.coaching)+'</p>';
+  if(event.review) html+='<div class="review-box"><strong>复盘步骤：</strong><pre>'+escapeHtml(event.review)+'</pre></div>';
+  if(event.note) html+='<p><strong>备注：</strong>'+escapeHtml(event.note)+'</p>';
+  html+='<p class="history-meta"><span class="badge">'+escapeHtml(formatDate(event.createdAt))+'</span></p>';
+  els.suggestionCard.innerHTML=html;
+}
+
+function renderHistory(state) {
+  var els=state._els, cs=getChildState(state,state.activeChild);
+  if(!cs.events.length){els.historyList.innerHTML='<div class="history-item"><p>还没有记录。</p></div>';return;}
+  var sorted=cs.events.slice().sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);}).slice(0,20);
+  els.historyList.innerHTML=sorted.map(function(e){
+    var html='<article class="history-item"><div class="history-item-head"><div>';
+    html+='<h3>'+escapeHtml(e.title)+'</h3>';
+    html+='<p>'+escapeHtml(prettyLabel(state.rules.devices,e.device))+' · '+e.minutes+'分钟</p>';
+    html+='</div><span class="badge '+(e.pointsDelta>=0?'positive':'negative')+'">'+(e.pointsDelta>0?'+':'')+e.pointsDelta+'分</span></div>';
+    html+='<p>'+escapeHtml(e.recommendation)+'</p>';
+    html+='<div class="history-meta"><span class="badge">'+escapeHtml(formatDate(e.createdAt))+'</span>';
+    if(e.emotion) html+='<span class="badge">'+escapeHtml(prettyLabel(emotionTypes,e.emotion))+'</span>';
+    html+='</div>';
+    html+='<div class="history-actions"><button class="action-btn edit-btn" data-id="'+e.id+'">编辑</button><button class="action-btn delete-btn" data-id="'+e.id+'">删除</button></div>';
+    html+='</article>';
+    return html;
+  }).join('');
+
+  els.historyList.querySelectorAll('.delete-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(!confirm('确定删除？积分会回退。')) return;
+      var cs2=getChildState(state,state.activeChild);
+      var idx=cs2.events.findIndex(function(e){return e.id===btn.dataset.id;});
+      if(idx===-1)return;
+      cs2.points-=cs2.events[idx].pointsDelta;
+      cs2.events.splice(idx,1);
+      saveState(state);renderApp(state);
+    });
+  });
+
+  els.historyList.querySelectorAll('.edit-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var cs2=getChildState(state,state.activeChild);
+      var ev=cs2.events.find(function(e){return e.id===btn.dataset.id;});
+      if(!ev)return;
+      els.eventType.value=ev.type;els.device.value=ev.device;els.purpose.value=ev.purpose;
+      els.minutes.value=ev.minutes;els.emotion.value=ev.emotion||'';els.note.value=ev.note||'';
+      els.isException.checked=ev.isException||false;
+      els.exceptionGroup.style.display=ev.isException?'block':'none';
+      if(ev.isException) els.exceptionType.value=ev.exceptionType||'';
+      state._editingId=ev.id;
+      els.submitBtn.textContent='保存修改';
+      window.scrollTo({top:els.eventForm.offsetTop-20,behavior:'smooth'});
+    });
+  });
+}
+
+function renderChildMode(state) {
+  var els=state._els, cs=getChildState(state,state.activeChild);
+  var streak=calcStreakDays(cs.events), status=getTodayStatus(cs.events);
+  els.childPoints.textContent=cs.points+' 分';
+  els.childStreak.textContent=streak+' 天';
+  els.childStatus.textContent=status.tone==='success'?'今天很棒！':status.tone==='warning'?'继续加油':'加油！';
+  var reward=state.rules.rewards[state.activeChild];
+  els.childReward.textContent=reward?reward.prize:'--';
+  var positives=cs.events.filter(function(e){return e.severity==='positive';}).slice(0,10);
+  if(positives.length){
+    els.childPositiveList.innerHTML=positives.map(function(e){return '<div class="positive-item"><span>'+escapeHtml(e.title)+'</span><span class="badge positive">+'+e.pointsDelta+'分</span></div>';}).join('');
+  } else { els.childPositiveList.innerHTML='<p>继续努力，好的记录会出现在这里！</p>'; }
+}
+
+function renderRulesDisplay(state) {
+  var el=document.getElementById('rulesDisplay');
+  var r=state.rules;
+  var html='<h3>使用规则</h3><ul class="rules-list">';
+  r.timeRules.forEach(function(rule){html+='<li>'+escapeHtml(rule)+'</li>';});
+  html+='</ul>';
+  html+='<h3>惩罚方案</h3>';
+  state.children.forEach(function(c){
+    var p=r.penalties[c.id];
+    if(p&&p.length){
+      html+='<h4>'+escapeHtml(c.name)+'</h4><ul class="rules-list">';
+      p.forEach(function(pen){html+='<li><strong>'+escapeHtml(pen.level)+'：</strong>'+escapeHtml(pen.desc)+'</li>';});
+      html+='</ul>';
+    }
+  });
+  html+='<h3>奖励</h3><ul class="rules-list">';
+  state.children.forEach(function(c){
+    var rw=r.rewards[c.id];
+    if(rw) html+='<li><strong>'+escapeHtml(c.name)+'：</strong>'+escapeHtml(rw.condition)+' → '+escapeHtml(rw.prize)+'</li>';
+  });
+  html+='</ul>';
+  el.innerHTML=html;
+}
+
+function renderRulesHistoryList(state) {
+  var el=document.getElementById('rulesHistory');
+  if(!state.rulesHistory||!state.rulesHistory.length){el.innerHTML='';return;}
+  var html='<details><summary class="eyebrow" style="cursor:pointer;margin-bottom:10px">规则修改历史（'+state.rulesHistory.length+'个版本）</summary>';
+  html+='<div class="history-list">';
+  state.rulesHistory.slice().reverse().forEach(function(h){
+    html+='<div class="history-item"><div class="history-item-head"><div><h3>v'+h.version+'</h3><p>'+escapeHtml(h.reason||'未填写原因')+'</p></div><span class="badge">'+escapeHtml(formatDate(h.date))+'</span></div></div>';
+  });
+  html+='</div></details>';
+  el.innerHTML=html;
+}
+// ===== RULES EDITOR =====
+
+function renderRulesEditor(state) {
+  var app = document.getElementById('appRoot');
+  var r = JSON.parse(JSON.stringify(state.rules));
+  var html = '<div class="setup-wizard card">';
+  html += '<h1>编辑家庭规则</h1>';
+  html += '<p class="hero-copy">修改后点击底部"保存规则"生效。</p>';
+
+  html += '<h2>使用规则</h2>';
+  html += '<div id="timeRulesEditor">';
+  r.timeRules.forEach(function(rule, i){
+    html += '<div class="child-input-row"><input type="text" class="time-rule-input" value="'+escapeHtml(rule)+'" data-index="'+i+'" /><button class="action-btn delete-btn remove-time-rule" data-index="'+i+'">删除</button></div>';
+  });
+  html += '</div>';
+  html += '<button class="ghost-btn" id="addTimeRuleBtn">+ 添加规则</button>';
+
+  html += '<h2>事件类型</h2>';
+  html += '<div id="eventTypesEditor">';
+  r.eventTypes.forEach(function(et, i){
+    html += '<div class="child-input-row"><input type="text" class="et-label-input" value="'+escapeHtml(et.label)+'" data-index="'+i+'" placeholder="事件名称" />';
+    html += '<select class="et-cat-input" data-index="'+i+'"><option value="positive"'+(et.category==='positive'?' selected':'')+'>正向</option><option value="minor"'+(et.category==='minor'?' selected':'')+'>轻微违规</option><option value="serious"'+(et.category==='serious'?' selected':'')+'>严重违规</option><option value="emotion"'+(et.category==='emotion'?' selected':'')+'>情绪</option></select>';
+    html += '<input type="number" class="et-pts-input" value="'+et.pointsDelta+'" data-index="'+i+'" style="width:60px" />';
+    html += '<button class="action-btn delete-btn remove-et" data-index="'+i+'">删除</button></div>';
+  });
+  html += '</div>';
+  html += '<button class="ghost-btn" id="addEventTypeBtn">+ 添加事件类型</button>';
+
+  html += '<h2>惩罚方案</h2>';
+  state.children.forEach(function(c){
+    html += '<h3>'+escapeHtml(c.name)+'</h3>';
+    var penalties = r.penalties[c.id] || [];
+    html += '<div class="penalty-editor" data-child="'+c.id+'">';
+    penalties.forEach(function(p, i){
+      html += '<div class="child-input-row"><input type="text" class="pen-level" value="'+escapeHtml(p.level)+'" data-child="'+c.id+'" data-index="'+i+'" placeholder="级别" style="width:80px" />';
+      html += '<input type="text" class="pen-desc" value="'+escapeHtml(p.desc)+'" data-child="'+c.id+'" data-index="'+i+'" placeholder="处罚内容" /></div>';
+    });
+    html += '</div>';
+    html += '<button class="ghost-btn add-penalty-btn" data-child="'+c.id+'">+ 添加惩罚级别</button>';
+  });
+
+  html += '<h2>奖励机制</h2>';
+  state.children.forEach(function(c){
+    var rw = r.rewards[c.id] || {condition:'',prize:''};
+    html += '<h3>'+escapeHtml(c.name)+'</h3>';
+    html += '<div class="child-input-row"><input type="text" class="reward-cond" value="'+escapeHtml(rw.condition)+'" data-child="'+c.id+'" placeholder="达标条件" />';
+    html += '<input type="text" class="reward-prize" value="'+escapeHtml(rw.prize)+'" data-child="'+c.id+'" placeholder="奖励内容" /></div>';
+  });
+
+  html += '<h2>修改原因</h2>';
+  html += '<input type="text" id="ruleChangeReason" placeholder="例如：孩子反馈后降低惩罚力度" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(24,50,74,0.16)" />';
+
+  html += '<br><br><div class="hero-actions"><button class="primary-btn" id="saveRulesBtn">保存规则</button>';
+  html += '<button class="ghost-btn" id="cancelRulesBtn">取消</button></div>';
+  html += '</div>';
+  app.innerHTML = html;
+
+  // Add time rule
+  document.getElementById('addTimeRuleBtn').addEventListener('click', function(){
+    r.timeRules.push('新规则');
+    renderRulesEditor(state);
+  });
+
+  // Add event type
+  document.getElementById('addEventTypeBtn').addEventListener('click', function(){
+    r.eventTypes.push({value:'custom_'+Date.now(),label:'新事件',category:'positive',pointsDelta:2});
+    renderRulesEditor(state);
+  });
+
+  // Add penalty
+  document.querySelectorAll('.add-penalty-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var cid=btn.dataset.child;
+      if(!r.penalties[cid]) r.penalties[cid]=[];
+      r.penalties[cid].push({level:'新级别',desc:'处罚内容'});
+      renderRulesEditor(state);
+    });
+  });
+
+  // Remove handlers
+  document.querySelectorAll('.remove-time-rule').forEach(function(btn){
+    btn.addEventListener('click', function(){r.timeRules.splice(Number(btn.dataset.index),1);renderRulesEditor(state);});
+  });
+  document.querySelectorAll('.remove-et').forEach(function(btn){
+    btn.addEventListener('click', function(){r.eventTypes.splice(Number(btn.dataset.index),1);renderRulesEditor(state);});
+  });
+
+  // Cancel
+  document.getElementById('cancelRulesBtn').addEventListener('click', function(){ renderMainApp(state); });
+
+  // Save
+  document.getElementById('saveRulesBtn').addEventListener('click', function(){
+    // Collect time rules
+    r.timeRules = [];
+    document.querySelectorAll('.time-rule-input').forEach(function(input){if(input.value.trim()) r.timeRules.push(input.value.trim());});
+
+    // Collect event types
+    r.eventTypes = [];
+    document.querySelectorAll('.et-label-input').forEach(function(input){
+      var idx=Number(input.dataset.index);
+      var cat=document.querySelectorAll('.et-cat-input')[idx].value;
+      var pts=Number(document.querySelectorAll('.et-pts-input')[idx].value)||0;
+      var label=input.value.trim();
+      if(label) r.eventTypes.push({value:'evt_'+idx+'_'+label.replace(/\s/g,'_'),label:label,category:cat,pointsDelta:pts});
+    });
+
+    // Collect penalties
+    state.children.forEach(function(c){
+      r.penalties[c.id]=[];
+      document.querySelectorAll('.pen-level[data-child="'+c.id+'"]').forEach(function(input){
+        var idx=Number(input.dataset.index);
+        var desc=document.querySelector('.pen-desc[data-child="'+c.id+'"][data-index="'+idx+'"]').value.trim();
+        if(input.value.trim()) r.penalties[c.id].push({level:input.value.trim(),desc:desc});
+      });
+    });
+
+    // Collect rewards
+    state.children.forEach(function(c){
+      var cond=document.querySelector('.reward-cond[data-child="'+c.id+'"]');
+      var prize=document.querySelector('.reward-prize[data-child="'+c.id+'"]');
+      r.rewards[c.id]={condition:cond?cond.value.trim():'',prize:prize?prize.value.trim():''};
+    });
+
+    r.version = (state.rules.version||1) + 1;
+    var reason = document.getElementById('ruleChangeReason').value.trim() || '未填写原因';
+    state.rules = r;
+    if(!state.rulesHistory) state.rulesHistory=[];
+    state.rulesHistory.push({version:r.version,date:new Date().toISOString(),reason:reason,snapshot:JSON.parse(JSON.stringify(r))});
+    saveState(state);
+    renderMainApp(state);
+  });
+}
+
+// ===== SETTINGS PANEL =====
+
+function renderSettingsPanel(state) {
+  var app = document.getElementById('appRoot');
+  var html = '<div class="setup-wizard card">';
+  html += '<h1>设置</h1>';
+  html += '<h2>孩子管理</h2>';
+  html += '<div id="settingsChildren">';
+  state.children.forEach(function(c, i){
+    html += '<div class="child-input-row"><input type="text" class="settings-child-name" value="'+escapeHtml(c.name)+'" data-index="'+i+'" />'+(state.children.length>1?'<button class="action-btn delete-btn remove-settings-child" data-index="'+i+'">删除</button>':'')+'</div>';
+  });
+  html += '</div>';
+  html += '<button class="ghost-btn" id="addSettingsChildBtn">+ 添加孩子</button>';
+  html += '<h2>重新选择模板</h2>';
+  html += '<p class="panel-copy">注意：重新选择模板会覆盖当前规则，但不会清除已有记录。</p>';
+  html += '<div class="template-grid">';
+  builtinTemplates.forEach(function(t){
+    html += '<div class="template-card card" data-template="'+t.id+'"><h3>'+escapeHtml(t.name)+'</h3><p>'+escapeHtml(t.desc)+'</p></div>';
+  });
+  html += '</div>';
+  html += '<br><div class="hero-actions"><button class="primary-btn" id="saveSettingsBtn">保存设置</button>';
+  html += '<button class="ghost-btn" id="cancelSettingsBtn">返回</button></div>';
+  html += '</div>';
+  app.innerHTML = html;
+
+  document.getElementById('addSettingsChildBtn').addEventListener('click', function(){
+    if(state.children.length>=4) return;
+    state.children.push({id:'child-'+Date.now(),name:'孩子'+(state.children.length+1)});
+    renderSettingsPanel(state);
+  });
+
+  document.querySelectorAll('.remove-settings-child').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(!confirm('删除这个孩子的配置？记录数据会保留。')) return;
+      state.children.splice(Number(btn.dataset.index),1);
+      renderSettingsPanel(state);
+    });
+  });
+
+  document.querySelectorAll('.template-card').forEach(function(card){
+    card.addEventListener('click', function(){
+      if(!confirm('确定用这个模板覆盖当前规则？已有记录不会丢失。')) return;
+      var t=builtinTemplates.find(function(t2){return t2.id===card.dataset.template;});
+      if(!t) return;
+      var newRules=JSON.parse(JSON.stringify(t.rules));
+      var newPen={},newRew={};
+      state.children.forEach(function(c,i){
+        var srcId=t.children[i]?t.children[i].id:t.children[0].id;
+        newPen[c.id]=newRules.penalties[srcId]?JSON.parse(JSON.stringify(newRules.penalties[srcId])):[{level:'轻度',desc:'按约定处理'}];
+        newRew[c.id]=newRules.rewards[srcId]?JSON.parse(JSON.stringify(newRules.rewards[srcId])):{condition:'待定',prize:'待定'};
+      });
+      newRules.penalties=newPen;newRules.rewards=newRew;
+      newRules.version=(state.rules.version||1)+1;
+      state.rules=newRules;
+      state.rulesHistory.push({version:newRules.version,date:new Date().toISOString(),reason:'重新选择模板：'+t.name,snapshot:JSON.parse(JSON.stringify(newRules))});
+      saveState(state);
+      renderSettingsPanel(state);
+      alert('模板已应用！');
+    });
+  });
+
+  document.getElementById('cancelSettingsBtn').addEventListener('click', function(){ renderMainApp(state); });
+
+  document.getElementById('saveSettingsBtn').addEventListener('click', function(){
+    document.querySelectorAll('.settings-child-name').forEach(function(input){
+      var idx=Number(input.dataset.index);
+      if(state.children[idx]) state.children[idx].name=input.value.trim()||('孩子'+(idx+1));
+    });
+    if(!state.activeChild||!state.children.find(function(c){return c.id===state.activeChild;})){
+      state.activeChild=state.children[0].id;
+    }
+    state.children.forEach(function(c){
+      if(!state[c.id]) state[c.id]={points:0,events:[]};
+      if(!state.rules.penalties[c.id]) state.rules.penalties[c.id]=[{level:'轻度',desc:'按约定处理'},{level:'重度',desc:'按约定严肃处理'}];
+      if(!state.rules.rewards[c.id]) state.rules.rewards[c.id]={condition:'待定',prize:'待定'};
+    });
+    saveState(state);
+    renderMainApp(state);
+  });
+}
+
+// ===== INIT =====
+
+document.addEventListener('DOMContentLoaded', function(){
+  var state = loadState();
+  if(!state.setupDone) {
+    renderSetupWizard(state);
+  } else {
+    renderMainApp(state);
+  }
+});
+    </script>
+  </body>
+</html>
